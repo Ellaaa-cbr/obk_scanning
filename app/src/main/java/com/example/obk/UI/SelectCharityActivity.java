@@ -14,6 +14,8 @@ import com.example.obk.data.local.entity.Charity;
 import com.example.obk.data.remote.FakeApiService;
 import com.example.obk.databinding.ActivitySelectCharityBinding;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.zxing.integration.android.IntentIntegrator;
+import com.google.zxing.integration.android.IntentResult;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,19 +41,41 @@ public class SelectCharityActivity extends AppCompatActivity {
         binding = ActivitySelectCharityBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        // 1) 后台获取慈善机构列表
+        // 1) get charity list
         ioExecutor.execute(() -> {
             List<Charity> list = FakeApiService.getCharities();
-            // 返回主线程更新 UI
-            mainHandler.post(() -> populateDropdown(list));
+            mainHandler.post(() -> charities = list);
         });
 
-        // 2) 点击 GO 按钮，跳转并带上选中的 charityId/name
+        binding.etCharityId.setOnClickListener(v -> launchBarcodeScanner());
+
+        // Go button
         binding.btnGo.setOnClickListener(v -> {
-            if (selectedId == null) {
-                Snackbar.make(v, "Please choose a charity", Snackbar.LENGTH_SHORT).show();
+            String input = binding.etCharityId.getText().toString().trim();
+            if (input.isEmpty()) {
+                Snackbar.make(v, "Please enter or scan a charity ID", Snackbar.LENGTH_SHORT).show();
                 return;
             }
+
+            // get name
+            Charity matched = null;
+            if (charities != null) {
+                for (Charity c : charities) {
+                    if (input.equalsIgnoreCase(c.id) || input.equalsIgnoreCase(c.name)) {
+                        matched = c;
+                        break;
+                    }
+                }
+            }
+
+            if (matched == null) {
+                Snackbar.make(v, "Charity not found", Snackbar.LENGTH_SHORT).show();
+                return;
+            }
+
+            selectedId = matched.id;
+            selectedName = matched.name;
+
             Intent intent = new Intent(this, CourierCheckoutActivity.class)
                     .putExtra("CHARITY_ID", selectedId)
                     .putExtra("CHARITY_NAME", selectedName);
@@ -59,23 +83,20 @@ public class SelectCharityActivity extends AppCompatActivity {
         });
     }
 
-    private void populateDropdown(List<Charity> list) {
-        this.charities = list;
-        List<String> names = new ArrayList<>();
-        for (Charity c : list) names.add(c.name);
+    private void launchBarcodeScanner() {
+        new IntentIntegrator(this)
+                .setOrientationLocked(true)
+                .setPrompt("Scan charity barcode")
+                .initiateScan();
+    }
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                this,
-                android.R.layout.simple_spinner_dropdown_item,
-                names
-        );
-        binding.spCharity.setAdapter(adapter);
-
-        binding.spCharity.setOnItemClickListener((parent, view, position, id) -> {
-            Charity c = charities.get(position);
-            selectedId   = c.id;
-            selectedName = c.name;
-        });
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
+        if (result != null && result.getContents() != null) {
+            binding.etCharityId.setText(result.getContents());
+        }
     }
 
     @Override

@@ -1,4 +1,3 @@
-// File: com/example/obk/ui/SelectCharityActivity.java
 package com.example.obk.UI;
 
 import android.content.Intent;
@@ -47,7 +46,7 @@ public class SelectCharityActivity extends AppCompatActivity {
             mainHandler.post(() -> charities = list);
         });
 
-        binding.etCharityId.setOnClickListener(v -> launchBarcodeScanner());
+        binding.btnScan.setOnClickListener(v -> launchBarcodeScanner());
 
         // Go button
         binding.btnGo.setOnClickListener(v -> {

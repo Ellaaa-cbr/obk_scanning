@@ -49,6 +49,7 @@ dependencies {
     implementation("androidx.room:room-runtime:2.6.1")
     implementation(libs.navigation.fragment)
     implementation(libs.navigation.ui)
+    implementation(libs.preference)
     annotationProcessor("androidx.room:room-compiler:2.6.1")
 
     /* ───── WorkManager ───── */
@@ -82,4 +83,6 @@ dependencies {
     implementation(libs.camera.lifecycle)
     implementation(libs.camera.view)
     implementation(libs.camera.extensions)
+
+    implementation ("androidx.preference:preference-ktx:1.2.1")
 }

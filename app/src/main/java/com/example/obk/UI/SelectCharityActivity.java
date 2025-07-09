@@ -10,8 +10,8 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.obk.data.local.entity.Charity;
-import com.example.obk.data.remote.FakeApiService;
 import com.example.obk.databinding.ActivitySelectCharityBinding;
+import com.example.obk.network.ApiService;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
@@ -40,11 +40,11 @@ public class SelectCharityActivity extends AppCompatActivity {
         binding = ActivitySelectCharityBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        // 1) get charity list
-        ioExecutor.execute(() -> {
-            List<Charity> list = FakeApiService.getCharities();
-            mainHandler.post(() -> charities = list);
-        });
+//        // 1) get charity list
+//        ioExecutor.execute(() -> {
+//            List<Charity> list = apiService.getCharities();
+//            mainHandler.post(() -> charities = list);
+//        });
 
         binding.btnScan.setOnClickListener(v -> launchBarcodeScanner());
 

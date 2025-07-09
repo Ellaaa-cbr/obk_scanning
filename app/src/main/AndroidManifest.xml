@@ -6,8 +6,10 @@
         android:name="android.hardware.camera"
         android:required="false" />
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.INTERNET" />
     <application
 
+        android:name=".ObkApp"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -22,11 +24,24 @@
             android:exported="false"
             android:theme="@style/Theme.Obk" />
         <activity
+            android:name=".ObkApp"
+            android:exported="false"
+            android:theme="@style/Theme.Obk"
+            tools:ignore="Instantiatable" />
+        <activity
             android:name=".UI.SelectCharityActivity"
             android:exported="false"
             android:theme="@style/Theme.Obk" />
         <activity
             android:name=".UI.MainActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Obk" />
+        <activity
+            android:name=".UI.SettingsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Obk" />
+        <activity
+            android:name=".UI.LoginActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

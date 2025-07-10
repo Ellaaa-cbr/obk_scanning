@@ -85,4 +85,9 @@ dependencies {
     implementation(libs.camera.lifecycle)
     implementation(libs.camera.view)
     implementation(libs.camera.extensions)
+
+    implementation (libs.logging.interceptor)
+    implementation (libs.retrofit2.converter.gson)
+    implementation (libs.squareup.retrofit)
+    implementation (libs.bcprov.jdk15to18)
 }

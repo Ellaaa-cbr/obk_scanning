@@ -7,7 +7,7 @@ import java.util.List;
 public class ValidateUserResponse {
 
     @SerializedName("data")
-    public List<TenantInfo> data;     // 可能为空列表
+    public List<TenantInfo> data;
 
     @SerializedName("success")
     public boolean success;

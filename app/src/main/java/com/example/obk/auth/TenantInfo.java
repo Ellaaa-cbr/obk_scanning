@@ -5,7 +5,7 @@ import com.google.gson.annotations.SerializedName;
 import java.util.List;
 
 public class TenantInfo {
-    @SerializedName("Name")          // ★ 精确匹配服务端
+    @SerializedName("Name")
     public String name;              // "QairosWorsley"
 
     @SerializedName("Alias")

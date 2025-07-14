@@ -30,7 +30,6 @@ import retrofit2.Callback;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-/** 完整封装登录流程的 ViewModel */
 public class LoginViewModel extends ViewModel {
 
     /* ---------------- Retrofit & API ---------------- */
@@ -40,7 +39,7 @@ public class LoginViewModel extends ViewModel {
 
     private final ApiService api;
 
-    /* ---------------- UI 状态 ---------------- */
+    /* ---------------- UI ---------------- */
 
     private final MutableLiveData<Boolean> loginSuccess = new MutableLiveData<>();
     private final MutableLiveData<String>  errorMsg     = new MutableLiveData<>();
@@ -48,16 +47,13 @@ public class LoginViewModel extends ViewModel {
     public LiveData<Boolean> getLoginSuccess() { return loginSuccess; }
     public LiveData<String>  getErrorMsg()     { return errorMsg; }
 
-    /* ---------------- 构造 ---------------- */
 
     public LoginViewModel() {
 
-        /* ① 打印 URL + 头 + Body */
         HttpLoggingInterceptor logging =
                 new HttpLoggingInterceptor(msg -> Log.d("HTTP", msg))
                         .setLevel(HttpLoggingInterceptor.Level.BODY);
 
-        /* ② 选做：再打印一次简洁的时间消耗 */
         Interceptor timing = chain -> {
             Request req = chain.request();
             long t1 = System.nanoTime();
@@ -69,27 +65,27 @@ public class LoginViewModel extends ViewModel {
         };
 
         OkHttpClient ok = new OkHttpClient.Builder()
-                .addInterceptor(timing)   // 可删
-                .addInterceptor(logging)  // ★ 只在这里加一次
+                .addInterceptor(timing)
+                .addInterceptor(logging)
                 .connectTimeout(15, TimeUnit.SECONDS)
                 .readTimeout(15, TimeUnit.SECONDS)
                 .build();
 
         Retrofit rt = new Retrofit.Builder()
                 .baseUrl(BASE_URL)
-                .client(ok)                              // ★ Retrofit 复用同一 client
+                .client(ok)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
         api = rt.create(ApiService.class);
     }
 
-    /* ---------------- STEP-1: 校验邮箱 ---------------- */
+    /* ---------------- STEP-1: validate email ---------------- */
 
     public void login(String email, String password) {
 
         if (TextUtils.isEmpty(email) || TextUtils.isEmpty(password)) {
-            errorMsg.postValue("邮箱或密码不能为空");
+            errorMsg.postValue("email or password cannot be empty");
             return;
         }
 
@@ -104,10 +100,10 @@ public class LoginViewModel extends ViewModel {
                         && !resp.body().data.isEmpty()) {
 
                     TenantInfo tInfo  = resp.body().data.get(0);
-                    String tenantName = tInfo.name;      // "QairosWorsley"（服务器字段是 Name）
+                    String tenantName = tInfo.name;
 
                     if (TextUtils.isEmpty(tenantName)) {
-                        errorMsg.postValue("服务器未返回租户信息，无法继续登录");
+                        errorMsg.postValue("Login cannot proceed because the server failed to return tenant information");
                         return;
                     }
 
@@ -115,7 +111,7 @@ public class LoginViewModel extends ViewModel {
                     requestChallenge(email, password, tenantName);
 
                 } else {
-                    errorMsg.postValue("邮箱不存在或未授权");
+                    errorMsg.postValue("Email does not exist or is not authorized");
                 }
 
                 Log.d("Login-JSON", "validateUser = "
@@ -123,12 +119,12 @@ public class LoginViewModel extends ViewModel {
             }
 
             @Override public void onFailure(Call<ValidateUserResponse> call, Throwable t) {
-                errorMsg.postValue("STEP-1 网络异常: " + t.getMessage());
+                errorMsg.postValue("STEP-1 Network error: " + t.getMessage());
             }
         });
     }
 
-    /* ---------------- STEP-2: 拿挑战串 ---------------- */
+    /* ---------------- STEP-2: get challenge ---------------- */
 
     private void requestChallenge(String email, String password, String tenant) {
 
@@ -138,7 +134,7 @@ public class LoginViewModel extends ViewModel {
 
                 if (resp.code() == 401 && resp.errorBody() != null) {
                     try {
-                        /* ★ errorBody().string() 只能读一次！ */
+
                         String rawChallenge = resp.errorBody().string()
                                 .replace("\"", "").trim();
                         Log.d("Step2", "challenge = " + rawChallenge);
@@ -150,16 +146,16 @@ public class LoginViewModel extends ViewModel {
                         doLoginWithChallenge(tenant, email, userChallenge);
 
                     } catch (Exception e) {
-                        errorMsg.postValue("加密/解密失败: " + e.getMessage());
+                        errorMsg.postValue("solve error: " + e.getMessage());
                         Log.e("Crypto", "solveChallenge error", e);
                     }
                 } else {
-                    errorMsg.postValue("获取挑战串失败，HTTP " + resp.code());
+                    errorMsg.postValue("get challenge fail，HTTP " + resp.code());
                 }
             }
 
             @Override public void onFailure(Call<okhttp3.ResponseBody> call, Throwable t) {
-                errorMsg.postValue("STEP-2 网络异常: " + t.getMessage());
+                errorMsg.postValue("STEP-2 Network error: " + t.getMessage());
             }
         });
     }
@@ -192,21 +188,21 @@ public class LoginViewModel extends ViewModel {
                                     if (r.isSuccessful() && r.body() != null) {
                                         loginSuccess.postValue(true);
                                     } else {
-                                        errorMsg.postValue("Token 无效或用户信息解析失败");
+                                        errorMsg.postValue("Token invalid");
                                     }
                                 }
                                 @Override public void onFailure(Call<UserDetail> c, Throwable t) {
-                                    errorMsg.postValue("STEP-4 网络异常: " + t.getMessage());
+                                    errorMsg.postValue("STEP-4 Network error: " + t.getMessage());
                                 }
                             });
 
                 } else {
-                    errorMsg.postValue("邮箱或密码错误");
+                    errorMsg.postValue("email or password wrong");
                 }
             }
 
             @Override public void onFailure(Call<TokenResponse> call, Throwable t) {
-                errorMsg.postValue("STEP-3 网络异常: " + t.getMessage());
+                errorMsg.postValue("STEP-3 Network error: " + t.getMessage());
             }
         });
     }

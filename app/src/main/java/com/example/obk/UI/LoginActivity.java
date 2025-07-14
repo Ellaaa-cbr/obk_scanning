@@ -25,26 +25,26 @@ public class LoginActivity extends AppCompatActivity {
         etPassword = findViewById(R.id.etPassword);
         btnLogin = findViewById(R.id.btnLogin);
 
-        // 获取 ViewModel
+        // get ViewModel
         viewModel = new ViewModelProvider(this).get(LoginViewModel.class);
 
-        // 观察登录结果
+        // see login result
         viewModel.getLoginSuccess().observe(this, success -> {
             if (Boolean.TRUE.equals(success)) {
-                // 登录成功，跳转 MainActivity
+                //  MainActivity
                 Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                 startActivity(intent);
                 finish();
             }
         });
-        // 观察错误信息
+        // error message
         viewModel.getErrorMsg().observe(this, msg -> {
             if (msg != null) {
                 Toast.makeText(LoginActivity.this, msg, Toast.LENGTH_SHORT).show();
             }
         });
 
-        // 登录按钮点击事件
+
         btnLogin.setOnClickListener(v -> {
             String email = etEmail.getText().toString().trim();
             String password = etPassword.getText().toString();

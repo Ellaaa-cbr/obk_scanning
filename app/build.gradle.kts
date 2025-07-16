@@ -91,5 +91,7 @@ dependencies {
     implementation (libs.squareup.retrofit)
     implementation (libs.bcprov.jdk15to18)
 
+    implementation ("com.squareup.retrofit2:converter-scalars:2.9.0")
+
 
 }

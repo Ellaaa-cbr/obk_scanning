@@ -10,6 +10,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.MediaStore;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -44,6 +45,7 @@ public class CourierCheckoutActivity extends AppCompatActivity {
     private CourierCheckoutViewModel viewModel;
     private TotesAdapter adapter;
     private Uri photoUri;
+    private int fakeCounter = 1;
     private final ExecutorService ioExecutor = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
@@ -52,17 +54,11 @@ public class CourierCheckoutActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         binding = ActivityCourierCheckoutBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-
-        // Get charity info from Intent
-        String charityId   = getIntent().getStringExtra("CHARITY_ID");
-        String charityName = getIntent().getStringExtra("CHARITY_NAME");
+        final String charityId = getIntent().getStringExtra("CHARITY_ID");
+        String charityName     = getIntent().getStringExtra("CHARITY_NAME");
         binding.tvCharityName.setText(charityName == null ? "Unknown" : charityName);
-
-        // ViewModel
         viewModel = new ViewModelProvider(this).get(CourierCheckoutViewModel.class);
-
-        // RecyclerView
-        adapter = new TotesAdapter();
+        adapter = new TotesAdapter((code, qty) -> viewModel.updateQty(code, qty));
         binding.rvTotes.setLayoutManager(new LinearLayoutManager(this));
         binding.rvTotes.setAdapter(adapter);
         viewModel.getScannedTotes().observe(this, adapter::submitList);
@@ -95,6 +91,14 @@ public class CourierCheckoutActivity extends AppCompatActivity {
             Toast.makeText(this, "Saved!", Toast.LENGTH_SHORT).show();
             finish();
         });
+
+        binding.btnMockScan.setVisibility(View.VISIBLE);
+        binding.btnMockScan.setOnClickListener(v -> simulateScan());
+    }
+    private void simulateScan() {
+        String fakeCode = "TOTE-" + String.format(Locale.US, "%04d", fakeCounter++);
+        viewModel.addScannedTote(fakeCode);
+        Snackbar.make(binding.getRoot(), "已添加模拟条码：" + fakeCode, Snackbar.LENGTH_SHORT).show();
     }
 
     /* ------------ ZXing ------------- */

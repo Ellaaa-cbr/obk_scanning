@@ -2,7 +2,7 @@ package com.example.obk.util;
 
 
 
-public class aaa {
+public class ChallengeSovler {
     public static String solveUserChallenge(String serverChallengeB64, String password) throws Exception {
         MD5 md5 = new MD5();
         RC6 rc6 = new RC6();

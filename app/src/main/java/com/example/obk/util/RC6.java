@@ -1,125 +1,13 @@
-package com.example.obk.util;//package com.example.obk.util;
-//
-//public class RC6 {
-//    private final int w = 32;
-//    private final int r = 20;
-//    private final int Pw = 0xB7E15163;
-//    private final int Qw = 0x9E3779B9;
-//    private int[] S;
-//
-//    public void setup(byte[] key) {
-//        int u = w / 8;
-//        int c = key.length / u;
-//        if (key.length % u != 0) c++;
-//        int[] L = new int[c];
-//        for (int i = key.length - 1; i >= 0; i--) {
-//            L[i / u] = (L[i / u] << 8) + (key[i] & 0xFF);
-//        }
-//
-//        int t = 2 * r + 4;
-//        S = new int[t];
-//        S[0] = Pw;
-//        for (int i = 1; i < t; i++) {
-//            S[i] = S[i - 1] + Qw;
-//        }
-//
-//        int A = 0, B = 0, i = 0, j = 0, v = 3 * Math.max(c, t);
-//        for (int s = 0; s < v; s++) {
-//            A = S[i] = rotateLeft(S[i] + A + B, 3);
-//            B = L[j] = rotateLeft(L[j] + A + B, (A + B));
-//            i = (i + 1) % t;
-//            j = (j + 1) % c;
-//        }
-//    }
-//
-//    public byte[] encrypt(byte[] in) {
-//        int[] data = bytesToInts(in);
-//        int A = data[0], B = data[1], C = data[2], D = data[3];
-//
-//        B += S[0];
-//        D += S[1];
-//
-//        for (int i = 1; i <= r; i++) {
-//            int t = rotateLeft(B * (2 * B + 1), 5);
-//            int u = rotateLeft(D * (2 * D + 1), 5);
-//            A = rotateLeft(A ^ t, u) + S[2 * i];
-//            C = rotateLeft(C ^ u, t) + S[2 * i + 1];
-//            int temp = A;
-//            A = B; B = C; C = D; D = temp;
-//        }
-//
-//        A += S[2 * r + 2];
-//        C += S[2 * r + 3];
-//
-//        int[] out = new int[] { A, B, C, D };
-//        return intsToBytes(out);
-//    }
-//
-//    public byte[] decrypt(byte[] in) {
-//        int[] data = bytesToInts(in);
-//        int A = data[0], B = data[1], C = data[2], D = data[3];
-//
-//        C -= S[2 * r + 3];
-//        A -= S[2 * r + 2];
-//
-//        for (int i = r; i >= 1; i--) {
-//            int temp = D;
-//            D = C; C = B; B = A; A = temp;
-//
-//            int u = rotateLeft(D * (2 * D + 1), 5);
-//            int t = rotateLeft(B * (2 * B + 1), 5);
-//            C = rotateRight(C - S[2 * i + 1], t) ^ u;
-//            A = rotateRight(A - S[2 * i], u) ^ t;
-//        }
-//
-//        D -= S[1];
-//        B -= S[0];
-//
-//        int[] out = new int[] { A, B, C, D };
-//        return intsToBytes(out);
-//    }
-//
-//    private int[] bytesToInts(byte[] input) {
-//        int[] result = new int[4];
-//        for (int i = 0; i < 4; i++) {
-//            result[i] = (input[i * 4] & 0xFF) |
-//                    ((input[i * 4 + 1] & 0xFF) << 8) |
-//                    ((input[i * 4 + 2] & 0xFF) << 16) |
-//                    ((input[i * 4 + 3] & 0xFF) << 24);
-//        }
-//        return result;
-//    }
-//
-//    private byte[] intsToBytes(int[] input) {
-//        byte[] result = new byte[16];
-//        for (int i = 0; i < 4; i++) {
-//            result[i * 4] = (byte) (input[i]);
-//            result[i * 4 + 1] = (byte) (input[i] >>> 8);
-//            result[i * 4 + 2] = (byte) (input[i] >>> 16);
-//            result[i * 4 + 3] = (byte) (input[i] >>> 24);
-//        }
-//        return result;
-//    }
-//
-//    private int rotateLeft(int val, int bits) {
-//        return (val << (bits & 31)) | (val >>> (32 - (bits & 31)));
-//    }
-//
-//    private int rotateRight(int val, int bits) {
-//        return (val >>> (bits & 31)) | (val << (32 - (bits & 31)));
-//    }
-//}
-
+package com.example.obk.util;
 
 import java.util.Random;
 
 public class RC6 {
 
-    /* ---------- 常量与字段 ---------- */
 
-    private static final Random rand = new Random(System.currentTimeMillis());  // 与 C# 的 DateTime.Ticks 对齐
-    private final int[] sKey = new int[44];                                     // 20 轮 × 2 + 4 = 44
-    private static final int BLOCK_SIZE = 16;                                   // 16 字节（128-bit）
+    private static final Random rand = new Random(System.currentTimeMillis());
+    private final int[] sKey = new int[44];
+    private static final int BLOCK_SIZE = 16;
 
     /* ---------- 内部工具函数（完全等价） ---------- */
 

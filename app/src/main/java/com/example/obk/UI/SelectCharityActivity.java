@@ -39,12 +39,11 @@ public class SelectCharityActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         binding = ActivitySelectCharityBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-
-        // 1) get charity list
         ioExecutor.execute(() -> {
-            List<Charity> list = FakeApiService.getCharities();
+            List<Charity> list = FakeApiService.getCharities(); // fake
             mainHandler.post(() -> charities = list);
         });
+
 
         binding.btnScan.setOnClickListener(v -> launchBarcodeScanner());
 

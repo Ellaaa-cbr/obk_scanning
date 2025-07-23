@@ -32,14 +32,12 @@ public class AppRepository {
 
     private static volatile AppRepository INSTANCE;
 
-    private final InventoryDao inventoryDao;
     private final AuditLogDao auditLogDao;
     private final ApiService api;      // Here unused – rely on FakeApi
     private final ExecutorService ioExecutor = Executors.newSingleThreadExecutor();
 
     private AppRepository(Context context) {
         AppDatabase db = AppDatabase.getInstance(context);
-        inventoryDao = db.inventoryDao();
         auditLogDao = db.auditLogDao();
         api = null; // placeholder for real Retrofit instance
     }

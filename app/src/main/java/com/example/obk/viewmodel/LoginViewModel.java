@@ -12,10 +12,9 @@ import com.example.obk.auth.TenantInfo;
 import com.example.obk.auth.UserDetail;
 import com.example.obk.auth.ValidateUserResponse;
 import com.example.obk.data.remote.ApiService;
-import com.example.obk.util.aaa;
+import com.example.obk.util.ChallengeSovler;
 import com.google.gson.Gson;
 
-import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.Interceptor;
@@ -130,7 +129,7 @@ public class LoginViewModel extends ViewModel {
                         String rawChallenge = resp.errorBody().string().replace("\"", "").trim();
                         Log.d("Step2", "challenge = " + rawChallenge);
 
-                        String userChallenge = aaa.solveUserChallenge(rawChallenge, password);
+                        String userChallenge = ChallengeSovler.solveUserChallenge(rawChallenge, password);
                         Log.d("Step2", "userChallenge = " + userChallenge);
 
                         doLoginWithChallenge(tenant, email, userChallenge);

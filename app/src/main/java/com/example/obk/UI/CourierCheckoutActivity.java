@@ -7,6 +7,8 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.MediaStore;
 import android.widget.Toast;
 
@@ -30,6 +32,8 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Second screen – scan barcodes, take/upload photos, submit checkout.
@@ -40,8 +44,8 @@ public class CourierCheckoutActivity extends AppCompatActivity {
     private CourierCheckoutViewModel viewModel;
     private TotesAdapter adapter;
     private Uri photoUri;
-
-
+    private final ExecutorService ioExecutor = Executors.newSingleThreadExecutor();
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

@@ -3,6 +3,9 @@
     import com.example.obk.auth.TokenResponse;
     import com.example.obk.auth.UserDetail;
     import com.example.obk.auth.ValidateUserResponse;
+    import com.example.obk.data.local.entity.Charity;
+
+    import java.util.List;
 
     import okhttp3.RequestBody;
     import okhttp3.ResponseBody;
@@ -35,4 +38,9 @@
         Call<UserDetail> getUserByToken(
                 @Path("tenant") String tenant,
                 @Body RequestBody tokenBody);
+
+        @GET("charities")
+        Call<List<Charity>> getCharities();
+
+
     }

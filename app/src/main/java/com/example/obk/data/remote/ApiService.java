@@ -4,7 +4,9 @@
     import com.example.obk.auth.UserDetail;
     import com.example.obk.auth.ValidateUserResponse;
     import com.example.obk.data.local.entity.Charity;
-
+    import com.example.obk.data.remote.model.CheckoutRequest;
+    import com.example.obk.data.remote.model.OrganizationDto;
+    import com.example.obk.data.remote.model.OrganizationResponse;
     import java.util.List;
 
     import okhttp3.RequestBody;
@@ -39,8 +41,13 @@
                 @Path("tenant") String tenant,
                 @Body RequestBody tokenBody);
 
-        @GET("charities")
-        Call<List<Charity>> getCharities();
+        @GET("Organization")
+        Call<OrganizationResponse> getOrganizations(
+                @Query("OrganizationTypeId") int typeId
+        );
+
+        @POST("User/Checkout")
+        Call<ResponseBody> checkout(@Body CheckoutRequest body);
 
 
     }

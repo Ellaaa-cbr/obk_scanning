@@ -1,14 +1,18 @@
 
 package com.example.obk.viewmodel;
 
+import androidx.annotation.NonNull;
+import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import android.app.Application;
 import android.text.TextUtils;
 import android.util.Log;
 
 import com.example.obk.auth.TenantInfo;
+import com.example.obk.auth.TokenManager;
 import com.example.obk.auth.UserDetail;
 import com.example.obk.auth.ValidateUserResponse;
 import com.example.obk.data.remote.ApiService;
@@ -30,12 +34,13 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.converter.scalars.ScalarsConverterFactory;
 
-public class LoginViewModel extends ViewModel {
+public class LoginViewModel extends AndroidViewModel {
 
     /* ---------------- Retrofit & API ---------------- */
 
     private static final String BASE_URL =
-            "https://apps.ensembleconsultinggroup.com/QairosDataServer/";
+            "https://apps.ensembleconsultinggroup.com/"
+                    + "QairosDataServerOBK/";
 
     private final ApiService api;
 
@@ -47,7 +52,8 @@ public class LoginViewModel extends ViewModel {
     public LiveData<Boolean> getLoginSuccess() { return loginSuccess; }
     public LiveData<String>  getErrorMsg()     { return errorMsg; }
 
-    public LoginViewModel() {
+    public LoginViewModel(@NonNull Application app){
+        super(app);
         HttpLoggingInterceptor logging = new HttpLoggingInterceptor(msg -> Log.d("HTTP", msg))
                 .setLevel(HttpLoggingInterceptor.Level.BODY);
 
@@ -87,7 +93,7 @@ public class LoginViewModel extends ViewModel {
             return;
         }
 
-        api.validateUser("Qairos", email).enqueue(new Callback<ValidateUserResponse>() {
+        api.validateUser("QairosOBK", email).enqueue(new Callback<ValidateUserResponse>() {
             @Override public void onResponse(Call<ValidateUserResponse> call,
                                              retrofit2.Response<ValidateUserResponse> resp) {
 
@@ -158,7 +164,7 @@ public class LoginViewModel extends ViewModel {
                     // Server returns plain-text JWT
                     String token = resp.body().replace("\"", "").trim();
                     Log.d("Step3", "token = " + token);
-
+                    TokenManager.save(getApplication(), token);
                     RequestBody body = RequestBody.create(
                             MediaType.parse("application/json"),   // <- JSON
                             "\"" + token + "\""                    // <- "eyJhbGciOiJI..."

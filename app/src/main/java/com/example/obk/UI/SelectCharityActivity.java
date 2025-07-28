@@ -18,10 +18,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-/**
- * First screen – let user choose a charity and tap GO.
- * Uses FakeApiService.getCharities() to simulate network fetch.
- */
+
 public class SelectCharityActivity extends AppCompatActivity {
 
     private ActivitySelectCharityBinding binding;

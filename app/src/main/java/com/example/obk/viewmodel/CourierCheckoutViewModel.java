@@ -20,6 +20,7 @@ import java.util.List;
 public class CourierCheckoutViewModel extends AndroidViewModel {
 
     private final AppRepository repo;
+
     private final MutableLiveData<List<ScannedTote>> scannedTotes =
             new MutableLiveData<>(new ArrayList<>());
     private final MutableLiveData<List<String>> photoPaths =
@@ -30,29 +31,36 @@ public class CourierCheckoutViewModel extends AndroidViewModel {
         repo = AppRepository.getInstance(app);
     }
 
-    /* getters */
-    public LiveData<List<ScannedTote>> getScannedTotes() {     // ★ 修正类型
-        return scannedTotes;
-    }
-    public LiveData<List<String>> getPhotoPaths() {
-        return photoPaths;
+    /* ---------------- getters ---------------- */
+    public LiveData<List<ScannedTote>> getScannedTotes() { return scannedTotes; }
+    public LiveData<List<String>>     getPhotoPaths()   { return photoPaths;   }
+
+    /* ---------------- helpers for Activity ---------------- */
+
+    /** 把所有条码收集成 ArrayList，方便放进 Intent */
+    public ArrayList<String> collectToteIds() {
+        ArrayList<String> list = new ArrayList<>();
+        for (ScannedTote t : scannedTotes.getValue()) list.add(t.code);
+        return list;
     }
 
-    /* mutators */
+    /** 返回第一张照片路径（可能为空） */
+    public String getFirstPhotoPathOrNull() {
+        return photoPaths.getValue().isEmpty() ? null : photoPaths.getValue().get(0);
+    }
+
+    /* ---------------- mutators ---------------- */
+
     public void addScannedTote(String code) {
         List<ScannedTote> list = new ArrayList<>(scannedTotes.getValue());
-        for (ScannedTote t : list) {
-            if (t.code.equals(code)) return;   // 已存在
-        }
+        for (ScannedTote t : list) if (t.code.equals(code)) return; // 已存在
         list.add(new ScannedTote(code));
         scannedTotes.setValue(list);
     }
 
     public void updateQty(String code, int newQty) {
         List<ScannedTote> list = new ArrayList<>(scannedTotes.getValue());
-        for (ScannedTote t : list) {
-            if (t.code.equals(code)) { t.qty = newQty; break; }
-        }
+        for (ScannedTote t : list) if (t.code.equals(code)) { t.qty = newQty; break; }
         scannedTotes.setValue(list);
     }
 
@@ -62,20 +70,16 @@ public class CourierCheckoutViewModel extends AndroidViewModel {
         photoPaths.setValue(list);
     }
 
-    /* submit */
-    public void submitCheckout(String charityId) {
-        File photoFile = photoPaths.getValue().isEmpty()
-                ? null
-                : new File(photoPaths.getValue().get(0));
+    /* ---------------- legacy submit (保留给其它地方用，可删) ---------------- */
+    public void submitCheckoutDirect(String charityId) {
+        File photoFile = photoPaths.getValue().isEmpty() ? null :
+                new File(photoPaths.getValue().get(0));
 
-        /* ❶ 仍然沿用旧版接口：把 ScannedTote ⇒ 条码字符串 */
         List<String> ids = new ArrayList<>();
         for (ScannedTote t : scannedTotes.getValue()) ids.add(t.code);
 
-        repo.submitCheckout(charityId, ids, photoFile);   // ← 不再报 List<> 类型不匹配
-
+        repo.submitCheckout(charityId, ids, photoFile);
         scannedTotes.setValue(new ArrayList<>());
         photoPaths.setValue(new ArrayList<>());
     }
-
 }

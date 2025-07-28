@@ -13,6 +13,7 @@ import com.example.obk.data.local.dao.AuditLogDao;
 import com.example.obk.data.local.entity.AuditLog;
 import com.example.obk.data.local.entity.Charity;
 import com.example.obk.data.remote.ApiService;
+import com.example.obk.data.remote.SubmitCallback;
 import com.example.obk.data.remote.model.CheckoutRequest;
 import com.example.obk.data.remote.model.OrganizationDto;
 import com.example.obk.data.remote.model.OrganizationResponse;
@@ -98,6 +99,14 @@ public class AppRepository {
     public void submitCheckout(String charityId,
                                List<String> toteIds,
                                File photoFile) {
+        submitCheckout(charityId, toteIds, photoFile, null);
+
+    }
+
+    public void submitCheckout(String charityId,
+                               List<String> toteIds,
+                               File photoFile,
+                               SubmitCallback cb) {
         ioExecutor.execute(() -> {
             long timestamp = System.currentTimeMillis();
 
@@ -128,15 +137,18 @@ public class AppRepository {
                 req.totes.add(ti);
             }
 
-            /* 3) 调用后台接口 */
             api.checkout(req).enqueue(new Callback<ResponseBody>() {
                 @Override public void onResponse(Call<ResponseBody> c, Response<ResponseBody> r) {
                     if (r.isSuccessful()) {
                         auditLogDao.markSynced(newIds);
+                        if (cb != null) cb.onResult(true, null);
+                    } else {
+                        if (cb != null) cb.onResult(false,
+                                new IOException("HTTP " + r.code()));
                     }
                 }
                 @Override public void onFailure(Call<ResponseBody> c, Throwable t) {
-                    // 离线：保持未同步状态，交给 SyncWorker
+                    if (cb != null) cb.onResult(false, t);
                 }
             });
         });

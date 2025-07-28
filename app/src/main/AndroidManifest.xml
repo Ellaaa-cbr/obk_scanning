@@ -31,6 +31,10 @@
             android:exported="false"
             android:theme="@style/Theme.Obk" />
         <activity
+            android:name=".UI.SubmittingActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Obk" />
+        <activity
             android:name=".UI.LoginActivity"
             android:exported="true">
             <intent-filter>

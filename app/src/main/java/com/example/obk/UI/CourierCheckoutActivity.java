@@ -31,6 +31,7 @@ import com.google.android.material.snackbar.Snackbar;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
@@ -87,8 +88,15 @@ public class CourierCheckoutActivity extends AppCompatActivity {
                 Snackbar.make(v, "No totes scanned", Snackbar.LENGTH_SHORT).show();
                 return;
             }
-            viewModel.submitCheckout(charityId);
-            Toast.makeText(this, "Saved!", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(this, SubmittingActivity.class)
+                    .putExtra(SubmittingActivity.EXTRA_CHARITY_ID, charityId)
+                    .putStringArrayListExtra(
+                            SubmittingActivity.EXTRA_TOTE_IDS,
+                            new ArrayList<>(viewModel.collectToteIds()))   // ➜ 自己写个 helper
+                    .putExtra(SubmittingActivity.EXTRA_PHOTO_PATH,
+                            viewModel.getFirstPhotoPathOrNull());
+
+            startActivity(intent);
             finish();
         });
 

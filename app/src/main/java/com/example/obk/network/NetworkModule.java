@@ -21,12 +21,12 @@ public final class NetworkModule {
     public static ApiService api(Context ctx) {
         if (INSTANCE != null) return INSTANCE;
 
-        // 1) 日志拦截器，打印完整请求/响应 body
+
         HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
         logging.setLevel(HttpLoggingInterceptor.Level.BODY);
         logging.setLevel(HttpLoggingInterceptor.Level.HEADERS);
 
-        // 2) 认证拦截器，给每个请求加上 Bearer token
+
         Interceptor auth = chain -> {
             Request original = chain.request();
             Request.Builder builder = original.newBuilder();
@@ -40,13 +40,13 @@ public final class NetworkModule {
             return chain.proceed(builder.build());
         };
 
-        // 3) 把它们都注册到 Builder 上
+
         OkHttpClient client = new OkHttpClient.Builder()
-                .addInterceptor(logging)  // <-- Builder, 不是 client
+                .addInterceptor(logging)
                 .addInterceptor(auth)
                 .build();
 
-        // 4) Retrofit 实例
+
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(BASE_URL)
                 .client(client)

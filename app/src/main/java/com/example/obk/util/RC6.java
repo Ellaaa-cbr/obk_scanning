@@ -9,12 +9,9 @@ public class RC6 {
     private final int[] sKey = new int[44];
     private static final int BLOCK_SIZE = 16;
 
-    /* ---------- 内部工具函数（完全等价） ---------- */
-
     private static int MAX(int x, int y) { return x > y ? x : y; }
     private static int MIN(int x, int y) { return x < y ? x : y; }
 
-    /** 字节序反转（与 C# 的 BSWAP 相同） */
     private static int BSWAP(int x) {
         return ((x >>> 24) & 0x000000FF) |
                 ((x << 24)  & 0xFF000000) |
@@ -22,19 +19,16 @@ public class RC6 {
                 ((x << 8)   & 0x00FF0000);
     }
 
-    /** 32-bit 左循环 */
     private static int ROL(int x, int y) {
         int n = y & 31;
         return (x << n) | (x >>> (32 - n));
     }
 
-    /** 32-bit 右循环 */
     private static int ROR(int x, int y) {
         int n = y & 31;
         return (x >>> n) | (x << (32 - n));
     }
 
-    /** 把 32-bit 整数写成 4 字节字符串（低字节在前） */
     private static String STORE32(int x) {
         return new String(new char[] {
                 (char) (x       & 0xFF),
@@ -44,7 +38,6 @@ public class RC6 {
         });
     }
 
-    /** 逐字节相加（与原 C# Add32 逐字节带进位的写法保持一致） */
     private static int ADD32(int x, int y) {
         int res = 0;
         for (int i = 0; i < 4; i++) {
@@ -55,7 +48,6 @@ public class RC6 {
 
     private static int SUB32(int x, int y) { return ADD32(x, ADD32(~y, 1)); }
 
-    /** 多项式乘法的逐字节模拟（与 C# 完全一致） */
     private static int MUL32(int x, int y) {
         int res = 0;
         for (int iy = 0; iy < 4; iy++) {
@@ -66,7 +58,6 @@ public class RC6 {
         return res;
     }
 
-    /** 从字符串第 w 个 32-bit 位置取 4 字节小端整数 */
     private static int LOAD32(String s, int w) {
         int base = w * 4;
         return  (s.charAt(base    ) & 0xFF)        |
@@ -75,31 +66,29 @@ public class RC6 {
                 ((s.charAt(base + 3) & 0xFF) << 24);
     }
 
-    /* ---------- 密钥扩展 ---------- */
 
     public void setup(String key) {
-        int[] L = new int[(key.length() + 3) / 4];   // 原始密钥分组
-        int[] S = new int[44];                       // 20 轮 ×2 +4
+        int[] L = new int[(key.length() + 3) / 4];
+        int[] S = new int[44];
 
         int A = 0, j = 0;
         for (int i = 0; i < key.length(); ) {
             A = (A << 8) | (key.charAt(i++) & 0xFF);
-            if ((i & 3) == 0) {                      // 每 4 字节填入一词
+            if ((i & 3) == 0) {
                 L[j++] = BSWAP(A);
                 A = 0;
             }
         }
-        if ((key.length() & 3) != 0) {               // 处理非 4 的整倍数
+        if ((key.length() & 3) != 0) {
             A <<= 8 * (4 - (key.length() & 3));
             L[j++] = BSWAP(A);
         }
 
-        /* 初始化 S 表 */
+
         S[0] = ADD32(0xB7E15163, 0);
         for (int i = 1; i < 44; i++)
             S[i] = ADD32(S[i - 1], 0x9E3779B9);
 
-        /* 混合密钥与 S */
         int s = 3 * MAX(44, j);
         int Areg = 0, Breg = 0, i = 0;
         for (int v = 0, k = j; v < s; v++) {
@@ -111,7 +100,6 @@ public class RC6 {
         System.arraycopy(S, 0, this.sKey, 0, 44);
     }
 
-    /* ---------- 加 / 解密核心 ---------- */
 
     private String coreCrypt(String block, boolean decipher) {
         int a = LOAD32(block, 0),
@@ -158,11 +146,10 @@ public class RC6 {
         return STORE32(a) + STORE32(b) + STORE32(c) + STORE32(d);
     }
 
-    /* ---------- 公共 API ---------- */
 
     public String encrypt(String data) {
         StringBuilder sb = new StringBuilder(data);
-        while (sb.length() % BLOCK_SIZE != 0) sb.append('\0');  // '\0' 填充
+        while (sb.length() % BLOCK_SIZE != 0) sb.append('\0');
         StringBuilder out = new StringBuilder(sb.length());
 
         for (int i = 0; i < sb.length(); i += BLOCK_SIZE) {
@@ -181,7 +168,6 @@ public class RC6 {
         for (int i = 0; i < data.length(); i += BLOCK_SIZE)
             out.append(coreCrypt(data.substring(i, i + BLOCK_SIZE), true));
 
-        /* 去掉 '\0' 填充（与原逻辑一致） */
         while (out.length() > BLOCK_SIZE && out.charAt(out.length() - 1) == '\0')
             out.deleteCharAt(out.length() - 1);
 
@@ -193,7 +179,6 @@ public class RC6 {
         return decrypt(data);
     }
 
-    /* ---------- 其它工具函数 ---------- */
 
     public String randomValue(int size) {
         StringBuilder sb = new StringBuilder(size);

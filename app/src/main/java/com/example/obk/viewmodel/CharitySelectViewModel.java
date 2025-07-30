@@ -1,4 +1,3 @@
-// File: com/example/obk/viewmodel/CharitySelectViewModel.java
 package com.example.obk.viewmodel;
 
 import android.app.Application;

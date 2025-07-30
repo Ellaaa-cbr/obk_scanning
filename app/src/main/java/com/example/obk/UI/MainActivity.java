@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.obk.data.SyncWorker;
 import com.example.obk.databinding.ActivityMainBinding;
 
 
@@ -16,6 +17,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        SyncWorker.enqueue(this);
 
         // Courier Checkout，
         binding.btnCourier.setOnClickListener(v ->

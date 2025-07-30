@@ -1,16 +1,16 @@
 package com.example.obk.data.local.entity;
 
-/** 扫描到的单个 TOTE（条码 + 数量，可编辑） */
+/** Each already scanned tote  */
 public class ScannedTote {
-    public final String code;   // 条码
-    public int qty;             // 数量，默认 36，可修改
+    public final String code;   // QR code
+    public int qty;             // count, 36, can be changed
 
     public ScannedTote(String code) {
         this.code = code;
         this.qty  = 36;
     }
 
-    /* 用于 DiffUtil 判断 */
+
     @Override public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof ScannedTote)) return false;

@@ -42,8 +42,8 @@ import retrofit2.Response;
  */
 public class AppRepository {
 
-    /* ----------- 单例 ----------- */
     private static volatile AppRepository INSTANCE;
+
 
     public static AppRepository getInstance(Context context) {
         if (INSTANCE == null) {
@@ -56,12 +56,13 @@ public class AppRepository {
         return INSTANCE;
     }
 
-    /* ----------- 成员 ----------- */
     private final AuditLogDao     auditLogDao;
     private final ApiService      api;
     private final ExecutorService ioExecutor = Executors.newSingleThreadExecutor();
+    private final Context appContext;
 
     private AppRepository(Context context) {
+        appContext = context.getApplicationContext();
         AppDatabase db = AppDatabase.getInstance(context);
         auditLogDao = db.auditLogDao();
         api = NetworkModule.api(context);
@@ -77,7 +78,7 @@ public class AppRepository {
                 if (resp.isSuccessful() && resp.body() != null) {
                     List<Charity> list = new ArrayList<>();
                     for (OrganizationDto o : resp.body().data) {
-                        // 如果后端真的还会塞进其它 typeId，也可以在客户端再过滤：
+                        //charity typeId = 4
                         if (o.typeId == 4) {
                             list.add(new Charity(o.id, o.name));
                         }
@@ -110,7 +111,7 @@ public class AppRepository {
         ioExecutor.execute(() -> {
             long timestamp = System.currentTimeMillis();
 
-            /* 1) 本地插入 AuditLog，先保证离线可追溯 */
+            /* 1) insert local AuditLog, preserve data in local database in case network error */
             List<Integer> newIds = new ArrayList<>();
             for (String toteId : toteIds) {
                 AuditLog log = new AuditLog();
@@ -123,7 +124,7 @@ public class AppRepository {
                 newIds.add(rowId);
             }
 
-            /* 2) 组装请求体 */
+            /* 2) CheckoutRequest */
             CheckoutRequest req = new CheckoutRequest();
             req.charityId   = charityId;
             req.timestamp   = timestamp;
@@ -133,7 +134,7 @@ public class AppRepository {
             for (String id : toteIds) {
                 ToteItem ti = new ToteItem();
                 ti.inventoryId = id;
-                ti.quantity    = 36;          // TODO: 真实数量
+                ti.quantity    = 36;
                 req.totes.add(ti);
             }
 
@@ -145,16 +146,18 @@ public class AppRepository {
                     } else {
                         if (cb != null) cb.onResult(false,
                                 new IOException("HTTP " + r.code()));
+                        SyncWorker.enqueue(appContext);
                     }
                 }
                 @Override public void onFailure(Call<ResponseBody> c, Throwable t) {
                     if (cb != null) cb.onResult(false, t);
+                    SyncWorker.enqueue(appContext);
                 }
             });
         });
     }
 
-    /* ---------- 后台补偿同步 ---------- */
+
     public void syncUnsyncedLogs() {
         ioExecutor.execute(() -> {
             List<AuditLog> unsynced = auditLogDao.getUnsynced();
@@ -162,7 +165,7 @@ public class AppRepository {
 
             for (AuditLog log : unsynced) {
                 CheckoutRequest req = new CheckoutRequest();
-                req.charityId   = "unknown";          // 视业务需求替换
+                req.charityId   = "4";   //Todo
                 req.timestamp   = log.timestamp;
                 req.photoBase64 = null;
 
@@ -177,16 +180,13 @@ public class AppRepository {
                     if (resp.isSuccessful()) {
                         auditLogDao.markSynced(Collections.singletonList(log.id));
                     }
-                } catch (IOException ignored) { /* 继续下次循环 */ }
+                } catch (IOException ignored) {  }
             }
         });
     }
 
-    /* ===================================================================== */
-    /* ==================              工具方法           ================== */
-    /* ===================================================================== */
-
-    /** 把照片压缩 → Base64，返回 null 表示无照片或读取失败 */
+    //util method
+    /** turn photo into Base64 string */
     private String encodePhoto(File file) {
         if (file == null || !file.exists()) return null;
 
@@ -194,7 +194,7 @@ public class AppRepository {
         if (bitmap == null) return null;
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        // 50% 质量足够上传，又不会过大
+        // 50% quality
         bitmap.compress(Bitmap.CompressFormat.JPEG, 50, baos);
         return Base64.encodeToString(baos.toByteArray(), Base64.NO_WRAP);
     }

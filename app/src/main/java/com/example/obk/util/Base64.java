@@ -2,18 +2,16 @@ package com.example.obk.util;
 
 public class Base64 {
 
-    // 与原代码相同的编码字符表，下标 64 是 '=' 用于填充
     private static final String KEY_STR =
             "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
 
 
-    /** 与原 encode 方法等价 */
     public static String encode(String input) {
         StringBuilder output = new StringBuilder();
         int i = 0;
 
         while (i < input.length()) {
-            int chr1 = (byte) input.charAt(i++) & 0xFF;   // 只保留低 8 位
+            int chr1 = (byte) input.charAt(i++) & 0xFF;
             int enc1, enc2, enc3, enc4;
             int chr2 = 0, chr3 = 0;
 
@@ -42,13 +40,13 @@ public class Base64 {
                     .append(KEY_STR.charAt(enc4));
         }
 
-        // URL-safe 变体
+
         return output.toString().replace('+', '-').replace('/', '_');
     }
 
-    /** 与原 decode 方法等价 */
+
     public static String decode(String input) {
-        // 还原 URL-safe 字符并去掉非 Base64 字符（含换行）
+
         String normalized = input.replace('_', '/')
                 .replace('-', '+')
                 .replaceAll("[^A-Za-z0-9+/=]", "");

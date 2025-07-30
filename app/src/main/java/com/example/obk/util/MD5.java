@@ -1,32 +1,24 @@
 package com.example.obk.util;
 
-/**
- *  Java 移植版 MD5 (Message-Digest Algorithm)
- *  与源码 https://www.webtoolkit.info/ 提供的 C#/JS 版实现完全等价
- */
 public class MD5 {
 
-    /* -------- 基础位运算 -------- */
 
     private static int rotateLeft(int val, int shift) {
         return (val << shift) | (val >>> (32 - shift));
     }
 
-    /** 等价于 C# 的 AddUnsigned —— 模 2^32 的无符号加法 */
     private static int addUnsigned(int x, int y) {
         long xl = x & 0xFFFFFFFFL;
         long yl = y & 0xFFFFFFFFL;
         return (int) ((xl + yl) & 0xFFFFFFFFL);
     }
 
-    /* -------- 四个非线性函数 -------- */
 
     private static int F(int x, int y, int z) { return (x & y) | (~x & z); }
     private static int G(int x, int y, int z) { return (x & z) | (y & ~z); }
     private static int H(int x, int y, int z) { return x ^ y ^ z; }
     private static int I(int x, int y, int z) { return y ^ (x | ~z); }
 
-    /* -------- 轮函数 FF/GG/HH/II -------- */
 
     private static int FF(int a, int b, int c, int d, int x, int s, int ac) {
         a = addUnsigned(a, addUnsigned(addUnsigned(F(b, c, d), x), ac));
@@ -45,36 +37,30 @@ public class MD5 {
         return addUnsigned(rotateLeft(a, s), b);
     }
 
-    /* -------- 把原始字符串拆成 512-bit 分组 -------- */
 
     private static int[] convertToWordArray(String msg) {
-        int msgLen = msg.length();                 // 以「字符个数 = 字节数」处理
-        long bitLen = (long) msgLen << 3;          // 原文长度（位）
+        int msgLen = msg.length();
+        long bitLen = (long) msgLen << 3;
 
-        // 计算总字数：((msgLen + 8) / 64 + 1) ×16
         int totalWords = (((msgLen + 8) / 64) + 1) * 16;
         int[] wordArray = new int[totalWords];
 
-        // 把字符串逐字节放入小端字序的 32 位词
         for (int i = 0; i < msgLen; i++) {
-            int wordIndex = i >>> 2;               // /4
-            int bytePos   = (i & 3) << 3;          // %4 ×8
+            int wordIndex = i >>> 2;
+            int bytePos   = (i & 3) << 3;
             wordArray[wordIndex] |= (msg.charAt(i) & 0xFF) << bytePos;
         }
 
-        // 附加 0x80（1000 0000）
         int wordIndex = msgLen >>> 2;
         int bytePos   = (msgLen & 3) << 3;
         wordArray[wordIndex] |= 0x80 << bytePos;
 
-        // 填入原始位长度（低、高 32 位）
         wordArray[totalWords - 2] = (int) bitLen;
         wordArray[totalWords - 1] = (int) (bitLen >>> 32);
 
         return wordArray;
     }
 
-    /* -------- 将 32 位整数写回 4 字节字符串 -------- */
 
     private static String wordToString(int val) {
         char[] bytes = new char[4];
@@ -84,11 +70,9 @@ public class MD5 {
         return new String(bytes);
     }
 
-    /* -------- 公开 API：返回 32 字节十六进制摘要 -------- */
 
     public String digest(String message) {
 
-        /* --- 常量 --- */
         final int S11 =  7, S12 = 12, S13 = 17, S14 = 22;
         final int S21 =  5, S22 =  9, S23 = 14, S24 = 20;
         final int S31 =  4, S32 = 11, S33 = 16, S34 = 23;
@@ -96,13 +80,11 @@ public class MD5 {
 
         int[] x = convertToWordArray(message);
 
-        // 初始化缓冲区
         int a = 0x67452301;
         int b = 0xEFCDAB89;
         int c = 0x98BADCFE;
         int d = 0x10325476;
 
-        // 512-bit 分块循环
         for (int k = 0; k < x.length; k += 16) {
             int AA = a, BB = b, CC = c, DD = d;
 
@@ -178,14 +160,12 @@ public class MD5 {
             c = II(c, d, a, b, x[k +  2], S43, 0x2AD7D2BB);
             b = II(b, c, d, a, x[k +  9], S44, 0xEB86D391);
 
-            /* --- 累加到缓冲区 --- */
             a = addUnsigned(a, AA);
             b = addUnsigned(b, BB);
             c = addUnsigned(c, CC);
             d = addUnsigned(d, DD);
         }
 
-        // 把 a b c d 写成 16 字节，再转成 32 位大写十六进制
         String raw = wordToString(a) + wordToString(b) +
                 wordToString(c) + wordToString(d);
 
@@ -197,10 +177,5 @@ public class MD5 {
         return hex.toString();
     }
 
-    /* ------------ 简单测试 ------------ */
-    public static void main(String[] args) {
-        MD5 md5 = new MD5();
-        System.out.println(md5.digest("hello"));        // 5D41402ABC4B2A76B9719D911017C592
-        System.out.println(md5.digest("MD5 in Java"));  // 2F2263F6F923F1A36FCD58E87CF38356
-    }
+
 }
